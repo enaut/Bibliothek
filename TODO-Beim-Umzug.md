@@ -13,7 +13,7 @@
 
 # Korrekturen
 
-* [ ] Barcodes der Bücher
+* [x] Barcodes der Bücher
 * [ ] Bücherstandorte überprüfen
 * [ ] Ausleihe nach Titel suchen
 * [ ] Vergebene Bücher Importieren

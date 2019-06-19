@@ -452,9 +452,10 @@ conn.commit()
 print("Adding items")
 for k in records:
     # Adding items with tag 952
-    for l in c.execute('''SELECT * FROM DBF_database_damedb_dbf
-                           JOIN DBF_database_damed_dbf on DBF_database_damedb_dbf.mednr = DBF_database_damed_dbf.mednr
-                           WHERE DBF_database_damedb_dbf.mednr IS "{}"'''.format(k)):
+    for l in c.execute('''SELECT a.mednrx as barcode,a.standort,a.deweynr,a.anschdat,a.invnr,a.leihvor,a.letausleih,a.bem1,b.mtyp,b.ean,b.titel,b.autor FROM DBF_database_damedb_dbf as a
+                           JOIN DBF_database_damed_dbf as b on a.mednr = b.mednr
+                           WHERE a.mednr IS "{}"'''.format(k)):
+
         records[k].add_field(Field(
                 tag = '952',
                 indicators = ['0','0'],
@@ -465,7 +466,7 @@ for k in records:
                     'i', l["invnr"],
                     'l', l["leihvor"],
                     'o', l["deweynr"],
-                    'p', l["mednrx"],
+                    'p', l["barcode"],
                     's', l["letausleih"],
                     'x', "(Daten importiert aus library for windows)" + l["bem1"],
                     'y', l["mtyp"]
