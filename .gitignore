@@ -1,0 +1,6 @@
+DBF-Database*
+.~*
+__pycache__
+*.db
+marcout.mrc
+users*.csv

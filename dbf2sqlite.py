@@ -1,5 +1,5 @@
-#! /usr/bin/env python
-from dbfpy import dbf
+#! /usr/bin/env python3
+import dbf
 import sys
 import os
 import sqlite3
@@ -20,15 +20,35 @@ args = parser.parse_args()
 
 conn = None
 
+filenames = set()
+
+for file in  args.infiles:
+    path,filename = os.path.split(file)
+    files = os.listdir(path)
+
+    for filename in files:
+        nn = filename.lower()
+        nn = os.path.join(path,nn)
+        src = os.path.join(path,filename)
+        if nn[-4:] in [".dbf", ".dbt" ]:
+            os.rename(src, nn)
+            if nn.endswith(".dbf"):
+                filenames.add(nn)
+
 def onIni():
     global conn
     if args.sqlite:
         print("sqlite: Opening db %s ..." % (args.sqlite))
         conn = sqlite3.connect(args.sqlite)
-    
+
     try:
-        for dbfName in args.infiles:
-            run(dbfName)
+        for dbfName in filenames:
+            print("converting db: ", dbfName)
+            try:
+                run(dbfName, codepage="cp850")
+            except UnicodeDecodeError as e:
+                print("failed retrying with other codepage")
+                run(dbfName, codepage="cp850")
     except sqlite3.Error as e:
         print("sqlite: " + e.args[0])
     finally:
@@ -38,31 +58,38 @@ def onIni():
             conn.close()
 
 
-def run(dbfName):
+def run(dbfName, codepage=None):
     global conn
-    dbf1 = dbf.Dbf(dbfName, readOnly=1, ignoreErrors=True)
-    
+    if codepage:
+        dbf1 = dbf.Table(dbfName).open(mode=dbf.READ_WRITE)
+    else:
+        dbf1 = dbf.Table(dbfName, codepage="cp850").open(mode=dbf.READ_WRITE)
+
+    dbf1.codepage = dbf.CodePage.__new__(dbf.CodePage, "cp850")
+
+
+
     if args.verbose: print("--> " + dbfName + " <--")
     if args.table:
-        for fldName in dbf1.fieldNames:
+        for fldName in dbf1.field_names:
             sys.stdout.write('%s\t'%(fldName))
         print()
         for i1 in range(min(3,len(dbf1))):
             rec = dbf1[i1]
-            for fldName in dbf1.fieldNames:
+            for fldName in dbf1.field_names:
                 sys.stdout.write('%s\t'%(rec[fldName]))
             print()
-            
+
     elif args.pretty:
-        out = [ dbf1.fieldNames ]
+        out = [ dbf1.field_names ]
         for el in dbf1:
             out.append([ str(s).strip() for s in el ])
         print_table(out)
-        
+
     elif args.sqlite:
         netto_name = re.sub('[^A-Za-z0-9]', '_', dbfName).strip('_')
         print("Importing %s into table %s ..." % (dbfName, netto_name))
-        cr_stat = "CREATE TABLE `%s` (`%s`)" % (netto_name, '`,`'.join(dbf1.fieldNames))
+        cr_stat = "CREATE TABLE `%s` (`%s`)" % (netto_name, '`,`'.join(dbf1.field_names))
         if args.force: conn.execute('DROP TABLE IF EXISTS `%s` ' % (netto_name))
         try:
             conn.execute(cr_stat)
@@ -70,25 +97,23 @@ def run(dbfName):
             print("sqlite: Error creating table %s!" % netto_name)
             print("You might want to try the --force option.")
             raise e
-        
-        
         for el in dbf1:
-            ins_stat = "INSERT INTO `%s` VALUES ('%s')" % (netto_name, "','".join([ str(s).strip().replace("'","''").replace('\x00', '\n') for s in el ]))
+            ins_stat = "INSERT INTO `%s` VALUES ('%s')" % (netto_name, "','".join([ str(s).strip().replace("'","''").replace('\x00','') for s in el ]))
             if args.verbose: print("sqlite: executing: %s" % ins_stat)
             conn.execute(ins_stat)
-        
+
     elif args.dump:
         print(( "\t%s\t%s\t" % (os.path.getsize(dbfName),dbfName)))
         for i1 in range(min(3,len(dbf1))):
             rec = dbf1[i1]
-            for fldName in dbf1.fieldNames:
+            for fldName in dbf1.field_names:
                print(('%s: %s'%(fldName, rec[fldName])))
             print()
     else:
         sys.stdout.write( "\t%s\t%s\t" % (os.path.getsize(dbfName),dbfName))
         #for i1 in range(min(3,len(dbf1))):
         #    rec = dbf1[i1]
-        for fldName in dbf1.fieldNames:
+        for fldName in dbf1.field_names:
             sys.stdout.write('%s, '%(fldName))
         print()
     dbf1.close()
@@ -96,14 +121,14 @@ def run(dbfName):
 
 def print_table(rows):
     """print_table(rows)
- 
+
     Prints out a table using the data in `rows`, which is assumed to be a
     sequence of sequences with the 0th element being the header.
     """
- 
+
     # - figure out column widths
     widths = [ len(max(columns, key=len)) for columns in zip(*rows) ]
-    
+
     # - print the separator
     print(('+-'+ '-+-'.join( '-' * width for width in widths ) +'-+'))
     # - print the header
@@ -111,10 +136,10 @@ def print_table(rows):
     print(('| '+
         ' | '.join( format(title, "%ds" % width) for width, title in zip(widths, header) )
         +' |'))
- 
+
     # - print the separator
     print(('|-'+ '-+-'.join( '-' * width for width in widths ) +'-|'))
- 
+
     # - print the data
     for row in data:
         print(('| '+
