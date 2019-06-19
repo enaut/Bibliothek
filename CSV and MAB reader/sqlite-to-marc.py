@@ -1,5 +1,6 @@
 from pymarc import Record, Field
 import sqlite3
+import sys
 
 def dict_factory(cursor, row):
     d = {}
@@ -24,7 +25,8 @@ with conn:
 
     for l in c.execute('SELECT * FROM DBF_database_damedmab_dbf'):
         if not l['mednr'] in records:
-            print('.', end='')
+            sys.stdout.write("°")
+            sys.stdout.flush()
             records[l['mednr']] = Record(file_encoding = "utf-8", force_utf8=True)
 
         """ Not needed
@@ -408,12 +410,12 @@ print("\nparsed {} records".format(len(records)))
 # Constants
 lehrerbib = ['Lehrerbibiothek', 'GA', 'LB', 'Lehrerbibliothelk', 'Lehrerbibliotehk', 'L', 'Lb', 'lehrerbiibliothek', 'lehrerbibliothel', 'Lehrerbiibliothek', 'Lehrerbibliothel', 'Lehreribliothek', 'Lehrerbibliothek', 'LP', 'Lehrerbibliothe', 'Lehrebibliothek']
 schülerbib = ['Bibiothek', 'Biblioothek', 'Bibliothekl', 'Bibliiothek', 'Bibliothek', 'Biliothek', 'Bibiliothek', 'bibliothek', 'Bibiiothek', 'BIbliothek', 'Biblliothek', "Jugendbibliothek"]
-other = ['Werkstatt', '1', '2', '4', 'Öxler', 'Kernzeit', 'Arztzimmer', 'Band 4',""]
+other = ['Werkstatt', '1', '2', '4', 'Öxler', 'Kernzeit', 'Arztzimmer', 'Band 4','werkstatt öxler','werkstatt  öxler',""]
 destbib = {}
 for b in lehrerbib:
     destbib[b.lower()] = "L"
 for b in schülerbib:
-    destbib[b.lower()] = "L"
+    destbib[b.lower()] = "B"
 for b in other:
     destbib[b.lower()] = "O"
 
@@ -455,6 +457,8 @@ for k in records:
     for l in c.execute('''SELECT a.mednrx as barcode,a.standort,a.deweynr,a.anschdat,a.invnr,a.leihvor,a.letausleih,a.bem1,b.mtyp,b.ean,b.titel,b.autor FROM DBF_database_damedb_dbf as a
                            JOIN DBF_database_damed_dbf as b on a.mednr = b.mednr
                            WHERE a.mednr IS "{}"'''.format(k)):
+        sys.stdout.write("°")
+        sys.stdout.flush()
 
         records[k].add_field(Field(
                 tag = '952',
