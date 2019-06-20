@@ -1,6 +1,7 @@
 from pymarc import Record, Field
 import sqlite3
 import sys
+import os
 
 def dict_factory(cursor, row):
     d = {}
@@ -8,7 +9,7 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-conn = sqlite3.connect('../new8.db')
+conn = sqlite3.connect(os.path.join(os.path.dirname(os.path.realpath(__file__)),'../new10.db'))
 conn.row_factory = dict_factory
 
 def log(*args):

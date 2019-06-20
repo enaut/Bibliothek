@@ -37,6 +37,31 @@ FROM DBF_Database_daknd_dbf;""")
 
 userids = []
 
+replacedictionary = {
+    "ä":"a",
+    "ö":"o",
+    "ü":"u",
+    "é":"e",
+    "è":"e",
+    "ß":"ss",
+    "Ä":"A",
+    "Ö":"o",
+    "Ü":"u",
+}
+
+def usernamegenerator(first,last, userids):
+    """generate cleaner userids"""
+    base = first + last[:2]
+    for k in replacedictionary:
+        base = base.replace(k, replacedictionary[k])
+    userid = base
+    enum = 0
+    while userid in userids:
+        enum += 1
+        userid = base + str(enum)
+        print("double ", base, " using ", userid)
+    return userid
+
 with open('users.csv', 'w', newline='') as csvfile:
     fieldnames = ['title', 'surname', 'firstname', 'dateofbirth', 'sex', 'address', 'zipcode', 'city', 'phone', 'mobile', 'email', 'cardnumber', 'branchcode', 'categorycode', 'dateenroled', 'userid', 'password']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -62,12 +87,7 @@ with open('users.csv', 'w', newline='') as csvfile:
             u["categorycode"] = 'J'
         elif u["categorycode"] == 'M':
             u["categorycode"] = 'S'
-        base = userid = u["firstname"] + u["surname"][:2]
-        enum = 0
-        while userid in userids:
-            enum += 1
-            userid = base + str(enum)
-            print("double ", base, " using ", userid)
+        userid = usernamegenerator(u["firstname"], u["surname"], userids)
         userids.append(userid)
         u["userid"] = userid
 
