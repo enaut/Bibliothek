@@ -1,6 +1,6 @@
 
 
-* DAAPROTX Vermutlich ausleihe und zurückgabetabelle 1. PROTTYP vermutlich ProzessTyp
+* DAAPROTX Vermutlich ausleihe und Zurückgabetabelle 1. PROTTYP vermutlich ProzessTyp
 * DAAPROT Tabelle die ausleihen und Rückgaben enthält
 * DAAUS Ausleihen mit Mahnung und "Gebühren"
 * DAAUTORX Leer
@@ -9,7 +9,7 @@
 * DAFIL Leer
 * DAFLL Leer
 * DAFTAG Ferientage
-* DAKASSE Kassen einzahlungen (2010)
+* DAKASSE Kassen Einzahlungen (2010)
 * DAKNDK Leer
 * DAKNDX Leer
 * DAKND Nutzer mit Namen und Kundennummern usw.
